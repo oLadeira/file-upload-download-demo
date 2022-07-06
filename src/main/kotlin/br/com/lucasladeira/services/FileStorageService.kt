@@ -2,7 +2,10 @@ package br.com.lucasladeira.services
 
 import br.com.lucasladeira.config.FileStorageConfig
 import br.com.lucasladeira.exceptions.FileStorageException
+import br.com.lucasladeira.exceptions.MyFileNotFoundException
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.Resource
+import org.springframework.core.io.UrlResource
 import org.springframework.stereotype.Service
 import org.springframework.util.StringUtils
 import org.springframework.web.multipart.MultipartFile
@@ -53,6 +56,21 @@ class FileStorageService(
             fileName
         }catch (ex: Exception){
             throw FileStorageException("Não foi possível armazenar o arquivo ${fileName}!", ex)
+        }
+    }
+
+    fun loadFileAsResource(fileName: String): Resource{
+        return try{
+            val filePath = fileStorageLocation.resolve(fileName).normalize()
+            val resource = UrlResource(filePath.toUri())
+
+            if (resource.exists()){
+                return resource
+            }else{
+                throw MyFileNotFoundException("File not found")
+            }
+        }catch (ex: Exception){
+            throw MyFileNotFoundException("O arquivo encontrado não foi encontrado!")
         }
     }
 }
